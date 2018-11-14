@@ -1,15 +1,17 @@
 package org.wickedsource.docxstamper.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.wml.ContentAccessor;
 import org.docx4j.wml.Tbl;
 import org.docx4j.wml.Tc;
+import org.docx4j.wml.Tr;
 import org.wickedsource.docxstamper.api.coordinates.ParagraphCoordinates;
+import org.wickedsource.docxstamper.api.coordinates.TableCellCoordinates;
 import org.wickedsource.docxstamper.api.coordinates.TableCoordinates;
 import org.wickedsource.docxstamper.api.coordinates.TableRowCoordinates;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ObjectDeleter {
 
@@ -73,6 +75,19 @@ public class ObjectDeleter {
         index -= objectsDeletedFromTable;
         table.getContent().remove(index);
         deletedObjectsPerParent.put(table, objectsDeletedFromTable + 1);
+    }
+    
+    public void deleteTableCell(TableCellCoordinates tableCellCoordinates) {
+    	Tr tableRow = tableCellCoordinates.getParentTableRowCoordinates().getRow();
+
+    	int index = tableCellCoordinates.getIndex();
+    	Integer objectsDeletedFromTable = deletedObjectsPerParent.get(tableRow);
+    	if (objectsDeletedFromTable == null) {
+    		objectsDeletedFromTable = 0;
+    	}
+    	index -= objectsDeletedFromTable;
+    	tableRow.getContent().remove(index);
+    	deletedObjectsPerParent.put(tableRow, objectsDeletedFromTable + 1);
     }
 
 }

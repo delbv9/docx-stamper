@@ -1,15 +1,16 @@
 package org.wickedsource.docxstamper.processor.displayif;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.wickedsource.docxstamper.api.coordinates.ParagraphCoordinates;
+import org.wickedsource.docxstamper.api.coordinates.TableCellCoordinates;
 import org.wickedsource.docxstamper.api.coordinates.TableCoordinates;
 import org.wickedsource.docxstamper.api.coordinates.TableRowCoordinates;
 import org.wickedsource.docxstamper.processor.BaseCommentProcessor;
 import org.wickedsource.docxstamper.processor.CommentProcessingException;
 import org.wickedsource.docxstamper.util.ObjectDeleter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DisplayIfProcessor extends BaseCommentProcessor implements IDisplayIfProcessor {
 
@@ -18,6 +19,8 @@ public class DisplayIfProcessor extends BaseCommentProcessor implements IDisplay
 	private List<TableCoordinates> tablesToBeRemoved = new ArrayList<>();
 
 	private List<TableRowCoordinates> tableRowsToBeRemoved = new ArrayList<>();
+	
+	private List<TableCellCoordinates> tableCellsToBeRemoved = new ArrayList<>();;
 
 	@Override
 	public void commitChanges(WordprocessingMLPackage document) {
@@ -25,6 +28,7 @@ public class DisplayIfProcessor extends BaseCommentProcessor implements IDisplay
 		removeParagraphs(deleter);
 		removeTables(deleter);
 		removeTableRows(deleter);
+		removeTableCells(deleter);
 	}
 
 	@Override
@@ -32,6 +36,7 @@ public class DisplayIfProcessor extends BaseCommentProcessor implements IDisplay
 		paragraphsToBeRemoved = new ArrayList<>();
 		tablesToBeRemoved = new ArrayList<>();
 		tableRowsToBeRemoved = new ArrayList<>();
+		tableCellsToBeRemoved = new ArrayList<>();
 	}
 
 	private void removeParagraphs(ObjectDeleter deleter) {
@@ -49,6 +54,12 @@ public class DisplayIfProcessor extends BaseCommentProcessor implements IDisplay
 	private void removeTableRows(ObjectDeleter deleter) {
 		for (TableRowCoordinates rCoords : tableRowsToBeRemoved) {
 			deleter.deleteTableRow(rCoords);
+		}
+	}
+	
+	private void removeTableCells(ObjectDeleter deleter) {
+		for (TableCellCoordinates cCoords : tableCellsToBeRemoved) {
+			deleter.deleteTableCell(cCoords);
 		}
 	}
 
@@ -84,4 +95,17 @@ public class DisplayIfProcessor extends BaseCommentProcessor implements IDisplay
 			tableRowsToBeRemoved.add(pCoords.getParentTableCellCoordinates().getParentTableRowCoordinates());
 		}
 	}
+
+	@Override
+	public void displayTableCellIf(Boolean condition) {
+		if (!condition) {
+			ParagraphCoordinates pCoords = getCurrentParagraphCoordinates();
+			if (pCoords.getParentTableCellCoordinates() == null ) {
+				throw new CommentProcessingException("Paragraph is not within a table!", pCoords);
+			}
+			tableCellsToBeRemoved.add(pCoords.getParentTableCellCoordinates());
+		}
+	}
+	
+	
 }

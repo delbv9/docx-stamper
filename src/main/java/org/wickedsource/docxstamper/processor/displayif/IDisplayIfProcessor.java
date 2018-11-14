@@ -26,4 +26,5 @@ public interface IDisplayIfProcessor {
      */
     void displayTableIf(Boolean condition);
 
+    void displayTableCellIf(Boolean condition);
 }
